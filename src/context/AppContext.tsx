@@ -92,6 +92,7 @@ interface AppContextType {
   
   // Quick Switcher / Reset
   loadDemoData: () => void;
+  clearAllErrorsAndData: () => void;
   availableUsers: User[];
   users: User[];
 
@@ -141,6 +142,27 @@ const USERS_STORAGE_KEY = 'carcare_pro_users_v2';
 
 const JOBS_STORAGE_KEY = 'carcare_pro_jobs_v2';
 const CUSTOMERS_STORAGE_KEY = 'carcare_pro_customers_v2';
+
+// Defensive sanitizer to guarantee clean, error-free models even if storage has legacy or corrupted entries
+const sanitizeJob = (j: any): JobCard => ({
+  ...j,
+  timeline: Array.isArray(j.timeline) ? j.timeline : [],
+  damagePins: Array.isArray(j.damagePins) ? j.damagePins : [],
+  photos: Array.isArray(j.photos) ? j.photos : [],
+  technicianNotes: Array.isArray(j.technicianNotes) ? j.technicianNotes : [],
+  payments: Array.isArray(j.payments) ? j.payments : [],
+  services: Array.isArray(j.services) ? j.services : [],
+  subtotal: typeof j.subtotal === 'number' ? j.subtotal : 0,
+  taxAmount: typeof j.taxAmount === 'number' ? j.taxAmount : 0,
+  discount: typeof j.discount === 'number' ? j.discount : 0,
+  totalAmount: typeof j.totalAmount === 'number' ? j.totalAmount : 0,
+  paidAmount: typeof j.paidAmount === 'number' ? j.paidAmount : 0,
+  balanceDue: typeof j.balanceDue === 'number' ? j.balanceDue : 0,
+  status: j.status || 'Received',
+  reportStatus: j.reportStatus || 'none',
+  isTimerRunning: !!j.isTimerRunning,
+  timerElapsedSeconds: typeof j.timerElapsedSeconds === 'number' ? j.timerElapsedSeconds : 0,
+});
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load saved data or seed defaults
@@ -204,7 +226,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const saved = localStorage.getItem(JOBS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(sanitizeJob);
+        }
       }
     } catch (e) {
       console.warn('Failed to parse saved jobs', e);
@@ -745,6 +769,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  const clearAllErrorsAndData = () => {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.warn('Could not clear storage', e);
+    }
+    setBranches(INITIAL_BRANCHES);
+    setUsers(INITIAL_USERS);
+    setCustomers(INITIAL_CUSTOMERS);
+    setLookups(INITIAL_LOOKUPS);
+    setJobs(INITIAL_JOBS);
+    setSettings(INITIAL_SETTINGS);
+    setCurrentUser(INITIAL_USERS[0]);
+    setOriginalAdminUser(null);
+    setSelectedBranchId('all');
+    setToasts([]);
+    addToast({
+      type: 'success',
+      title: 'All Errors & Data Cleared',
+      message: 'Storage cleared and application reset to a clean, error-free state.',
+    });
+  };
+
   const openQuickLookup = (type: string, parentId?: string) => {
     setActiveQuickLookupType(type);
     setQuickLookupParentId(parentId);
@@ -1009,6 +1057,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addToast,
         removeToast,
         loadDemoData,
+        clearAllErrorsAndData,
         availableUsers: users,
         activeQuickLookupType,
         openQuickLookup,
