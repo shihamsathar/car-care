@@ -428,7 +428,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ...j,
             status: newStatus,
             updatedAt: now,
-            timeline: [...j.timeline, timelineEntry],
+            timeline: [...(j.timeline || []), timelineEntry],
           };
         }
         return j;
@@ -451,7 +451,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setJobs((prev) =>
-      prev.map((j) => (j.id === jobId ? { ...j, damagePins: [...j.damagePins, pin] } : j))
+      prev.map((j) => (j.id === jobId ? { ...j, damagePins: [...(j.damagePins || []), pin] } : j))
     );
 
     addToast({
@@ -464,7 +464,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setJobs((prev) =>
       prev.map((j) =>
         j.id === jobId
-          ? { ...j, damagePins: j.damagePins.filter((p) => p.id !== pinId) }
+          ? { ...j, damagePins: (j.damagePins || []).filter((p) => p.id !== pinId) }
           : j
       )
     );
@@ -479,14 +479,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setJobs((prev) =>
-      prev.map((j) => (j.id === jobId ? { ...j, photos: [...j.photos, photo] } : j))
+      prev.map((j) => (j.id === jobId ? { ...j, photos: [...(j.photos || []), photo] } : j))
     );
   };
 
   const deletePhoto = (jobId: string, photoId: string) => {
     setJobs((prev) =>
       prev.map((j) =>
-        j.id === jobId ? { ...j, photos: j.photos.filter((p) => p.id !== photoId) } : j
+        j.id === jobId ? { ...j, photos: (j.photos || []).filter((p) => p.id !== photoId) } : j
       )
     );
   };
@@ -497,7 +497,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (j.id !== jobId) return j;
         return {
           ...j,
-          photos: j.photos.map((p) =>
+          photos: (j.photos || []).map((p) =>
             p.id === photoId ? { ...p, isCustomerVisible: !p.isCustomerVisible } : p
           ),
         };
@@ -517,7 +517,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setJobs((prev) =>
-      prev.map((j) => (j.id === jobId ? { ...j, technicianNotes: [...j.technicianNotes, note] } : j))
+      prev.map((j) => (j.id === jobId ? { ...j, technicianNotes: [...(j.technicianNotes || []), note] } : j))
     );
 
     if (note.type === 'safety') {
@@ -543,10 +543,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setJobs((prev) =>
       prev.map((j) => {
         if (j.id !== jobId) return j;
-        const newBalance = Math.max(0, j.balanceDue - payment.amount);
+        const currentBalance = j.balanceDue ?? 0;
+        const newBalance = Math.max(0, currentBalance - payment.amount);
         return {
           ...j,
-          payments: [...j.payments, payment],
+          payments: [...(j.payments || []), payment],
           balanceDue: newBalance,
         };
       })
@@ -600,7 +601,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             reportSentAt: now,
             reportSentBy: currentUser?.name || 'Admin',
             reportWhatsAppUrl: whatsappLink,
-            timeline: [...j.timeline, timelineEntry],
+            timeline: [...(j.timeline || []), timelineEntry],
           };
         }
         return j;

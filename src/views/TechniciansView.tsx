@@ -59,6 +59,7 @@ export const TechniciansView: React.FC = () => {
   // Modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTech, setEditingTech] = useState<User | null>(null);
+  const [techToDelete, setTechToDelete] = useState<User | null>(null);
   const [createdCredentialsModal, setCreatedCredentialsModal] = useState<{
     name: string;
     username: string;
@@ -708,21 +709,7 @@ export const TechniciansView: React.FC = () => {
                     {/* Delete Technician */}
                     <button
                       type="button"
-                      onClick={() => {
-                        const confirmed = typeof window !== 'undefined' && window.confirm
-                          ? window.confirm(`Are you sure you want to delete technician account "${tech.name}"?`)
-                          : true;
-                        if (confirmed) {
-                          const res = deleteUser(tech.id);
-                          if (!res.success) {
-                            addToast({
-                              type: 'error',
-                              title: 'Cannot Delete Technician',
-                              message: res.error || 'Failed to remove technician account.',
-                            });
-                          }
-                        }
-                      }}
+                      onClick={() => setTechToDelete(tech)}
                       className="p-1.5 text-slate-400 hover:text-rose-600 border border-slate-200 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors"
                       title="Delete account"
                     >
@@ -864,6 +851,15 @@ export const TechniciansView: React.FC = () => {
                             title="View technician bay"
                           >
                             <Eye className="w-4 h-4 text-[#0E9AA7]" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setTechToDelete(tech)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors"
+                            title="Delete technician account"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -1403,6 +1399,64 @@ export const TechniciansView: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: DELETE TECHNICIAN CONFIRMATION */}
+      {techToDelete && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6 animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-rose-50 border-b border-rose-100 p-6 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-slate-900 text-base">Delete Technician Account</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Are you sure you want to permanently delete the account for <strong className="text-slate-800">{techToDelete.name}</strong> (@{techToDelete.username})?
+                </p>
+                <div className="mt-2 text-[11px] text-rose-700 bg-rose-100/60 rounded-lg p-2 font-medium">
+                  This action cannot be undone. Technicians with active jobs cannot be deleted.
+                </div>
+              </div>
+            </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setTechToDelete(null)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const target = techToDelete;
+                  setTechToDelete(null);
+                  if (target) {
+                    const res = deleteUser(target.id);
+                    if (!res.success) {
+                      addToast({
+                        type: 'error',
+                        title: 'Cannot Delete Technician',
+                        message: res.error || 'Failed to remove technician account.',
+                      });
+                    } else {
+                      addToast({
+                        type: 'success',
+                        title: 'Technician Deleted',
+                        message: `Account for ${target.name} has been removed.`,
+                      });
+                    }
+                  }
+                }}
+                className="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm cursor-pointer transition-colors flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Yes, Delete Technician
+              </button>
+            </div>
           </div>
         </div>
       )}

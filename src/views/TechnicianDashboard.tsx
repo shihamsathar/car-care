@@ -242,7 +242,11 @@ export const TechnicianDashboard: React.FC = () => {
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert(language === 'ar' ? 'خاصية التعرف على الصوت غير مدعومة في متصفحك.' : 'Voice recognition is not supported on this browser.');
+      addToast({
+        type: 'warning',
+        title: language === 'ar' ? 'غير مدعوم' : 'Not Supported',
+        message: language === 'ar' ? 'خاصية التعرف على الصوت غير مدعومة في متصفحك.' : 'Voice recognition is not supported on this browser.'
+      });
       return;
     }
 
