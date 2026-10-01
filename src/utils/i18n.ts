@@ -128,11 +128,32 @@ export const translations = {
   belongingsReturned: { en: 'All customer items accounted for and returned', ar: 'التأكد من إعادة كافة متعلقات العميل' },
 };
 
-export function t(key: keyof typeof translations, lang: Language = 'en'): string {
-  if (translations[key]) {
-    return translations[key][lang] || translations[key].en;
+export function t(key: string, lang: Language = 'en'): string {
+  const entry = (translations as any)[key];
+  if (entry) {
+    return entry[lang] || entry.en || key;
   }
   return key;
+}
+
+// Opens external links safely within iframes/sandboxes
+export function openExternalLink(url: string): void {
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (err) {
+    console.warn('Could not trigger anchor click, attempting fallback:', err);
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      console.error('Failed to open link:', e);
+    }
+  }
 }
 
 export function formatQAR(amount: number, lang: Language = 'en'): string {

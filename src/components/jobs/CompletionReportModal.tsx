@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { JobCard } from '../../types';
 import { useApp } from '../../context/AppContext';
-import { formatQAR, formatQatarDate } from '../../utils/i18n';
+import { formatQAR, formatQatarDate, openExternalLink } from '../../utils/i18n';
 import { BeforeAfterSlider } from '../common/BeforeAfterSlider';
 import { CarBlueprintDiagram } from '../vehicle/CarBlueprintDiagram';
 
@@ -74,8 +74,7 @@ export const CompletionReportModal: React.FC<CompletionReportModalProps> = ({
     handleSaveChanges();
     const waLink = sendCompletionReport(job.id);
     if (waLink) {
-      // In web browser: open wa.me link
-      window.open(waLink, '_blank', 'noopener,noreferrer');
+      openExternalLink(waLink);
     }
   };
 

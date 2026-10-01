@@ -49,6 +49,7 @@ interface AppContextType {
   setSelectedBranchId: (id: string) => void;
   branches: Branch[];
   activeBranch: Branch | undefined;
+  addBranch: (branchData: Omit<Branch, 'id'>) => Branch;
   
   // Language & RTL
   language: Language;
@@ -65,7 +66,7 @@ interface AppContextType {
   
   // Job actions
   createJob: (job: Omit<JobCard, 'id' | 'jobNo' | 'createdAt' | 'createdBy' | 'updatedAt' | 'timeline' | 'payments'>) => JobCard;
-  updateJob: (id: string, updates: Partial<JobCard>) => void;
+  updateJob: (id: string, updates: Partial<JobCard> | ((prev: JobCard) => Partial<JobCard>)) => void;
   updateJobStatus: (id: string, newStatus: JobStatus, note?: string) => void;
   addDamagePin: (jobId: string, pin: Omit<DamagePin, 'id' | 'createdAt' | 'addedBy'>) => void;
   deleteDamagePin: (jobId: string, pinId: string) => void;
@@ -138,6 +139,9 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 const LOCAL_STORAGE_KEY = 'carcare_pro_data_v2';
 const USERS_STORAGE_KEY = 'carcare_pro_users_v2';
 
+const JOBS_STORAGE_KEY = 'carcare_pro_jobs_v2';
+const CUSTOMERS_STORAGE_KEY = 'carcare_pro_customers_v2';
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load saved data or seed defaults
   const [branches, setBranches] = useState<Branch[]>(INITIAL_BRANCHES);
@@ -171,9 +175,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [originalAdminUser, setOriginalAdminUser] = useState<User | null>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<string>('all');
   const [language, setLanguageState] = useState<Language>('en');
-  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
+
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    try {
+      const saved = localStorage.getItem(CUSTOMERS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved customers', e);
+    }
+    return INITIAL_CUSTOMERS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CUSTOMERS_STORAGE_KEY, JSON.stringify(customers));
+    } catch (e) {
+      console.warn('Failed to save customers to localStorage', e);
+    }
+  }, [customers]);
+
   const [lookups, setLookups] = useState<LookupItem[]>(INITIAL_LOOKUPS);
-  const [jobs, setJobs] = useState<JobCard[]>(INITIAL_JOBS);
+
+  const [jobs, setJobs] = useState<JobCard[]>(() => {
+    try {
+      const saved = localStorage.getItem(JOBS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved jobs', e);
+    }
+    return INITIAL_JOBS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(JOBS_STORAGE_KEY, JSON.stringify(jobs));
+    } catch (e) {
+      console.warn('Failed to save jobs to localStorage', e);
+    }
+  }, [jobs]);
   const [settings, setSettings] = useState<Settings>(INITIAL_SETTINGS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -262,6 +307,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const activeBranch = branches.find((b) => b.id === selectedBranchId) || branches[0];
 
+  const addBranch = (branchData: Omit<Branch, 'id'>): Branch => {
+    const newBranch: Branch = {
+      ...branchData,
+      id: `branch-${Date.now()}`,
+    };
+    setBranches((prev) => [...prev, newBranch]);
+    addToast({
+      type: 'success',
+      title: 'Branch Workspace Created',
+      message: `Branch ${newBranch.nameEn} (${newBranch.code}) successfully added.`,
+    });
+    return newBranch;
+  };
+
   // Helper to generate sequential Job No: BRANCHCODE-YYYY-000001
   const generateJobNo = (branchId: string): string => {
     const branch = branches.find((b) => b.id === branchId) || branches[0];
@@ -333,13 +392,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newJob;
   };
 
-  const updateJob = (id: string, updates: Partial<JobCard>) => {
+  const updateJob = (
+    id: string,
+    updates: Partial<JobCard> | ((prevJob: JobCard) => Partial<JobCard>)
+  ) => {
     setJobs((prev) =>
       prev.map((j) => {
         if (j.id === id) {
+          const resolvedUpdates = typeof updates === 'function' ? updates(j) : updates;
           return {
             ...j,
-            ...updates,
+            ...resolvedUpdates,
             updatedAt: new Date().toISOString(),
           };
         }
@@ -659,15 +722,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const loadDemoData = () => {
     setBranches(INITIAL_BRANCHES);
     setUsers(INITIAL_USERS);
-    try {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
-    } catch (e) {
-      console.error(e);
-    }
     setCustomers(INITIAL_CUSTOMERS);
     setLookups(INITIAL_LOOKUPS);
     setJobs(INITIAL_JOBS);
     setSettings(INITIAL_SETTINGS);
+    try {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
+      localStorage.setItem(JOBS_STORAGE_KEY, JSON.stringify(INITIAL_JOBS));
+      localStorage.setItem(CUSTOMERS_STORAGE_KEY, JSON.stringify(INITIAL_CUSTOMERS));
+    } catch (e) {
+      console.error(e);
+    }
     setCurrentUser(INITIAL_USERS[0]);
     setOriginalAdminUser(null);
     setSelectedBranchId('all');
@@ -908,6 +973,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedBranchId,
         branches,
         activeBranch,
+        addBranch,
         language,
         setLanguage,
         dir: language === 'ar' ? 'rtl' : 'ltr',

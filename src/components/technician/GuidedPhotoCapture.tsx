@@ -101,6 +101,7 @@ export const GuidedPhotoCapture: React.FC<GuidedPhotoCaptureProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [zoomedPhotoUrl, setZoomedPhotoUrl] = useState<string | null>(null);
   const [customDetailCaption, setCustomDetailCaption] = useState('');
+  const [captureError, setCaptureError] = useState<string | null>(null);
 
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -188,7 +189,7 @@ export const GuidedPhotoCapture: React.FC<GuidedPhotoCaptureProps> = ({
       onAddPhoto(newPhotoData);
       AudioHapticService.playSuccessChime();
     } catch (err: any) {
-      alert(err.message || 'Failed to process photo');
+      setCaptureError(err?.message || 'Failed to process photo.');
       AudioHapticService.playWarningTone();
     } finally {
       setIsProcessing(false);
@@ -209,6 +210,23 @@ export const GuidedPhotoCapture: React.FC<GuidedPhotoCaptureProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Capture Error Banner */}
+      {captureError && (
+        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center justify-between gap-2 shadow-xs">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{captureError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCaptureError(null)}
+            className="text-rose-600 hover:text-rose-900 font-bold p-1 text-xs cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Hidden file & camera inputs */}
       <input
         ref={cameraInputRef}

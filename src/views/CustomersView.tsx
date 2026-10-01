@@ -23,9 +23,9 @@ export const CustomersView: React.FC = () => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
-      c.name.toLowerCase().includes(term) ||
-      c.qid.includes(term) ||
-      c.mobile.includes(term) ||
+      (c.name && c.name.toLowerCase().includes(term)) ||
+      (c.qid && c.qid.includes(term)) ||
+      (c.mobile && c.mobile.includes(term)) ||
       (c.companyName && c.companyName.toLowerCase().includes(term))
     );
   });

@@ -15,7 +15,7 @@ import { useApp } from '../context/AppContext';
 import { Branch } from '../types';
 
 export const BranchesView: React.FC = () => {
-  const { branches, jobs, technicians, addToast } = useApp();
+  const { branches, jobs, technicians, addBranch, addToast } = useApp();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // New branch form state
@@ -33,10 +33,18 @@ export const BranchesView: React.FC = () => {
     e.preventDefault();
     if (!nameEn.trim() || !code.trim()) return;
 
-    addToast({
-      type: 'success',
-      title: 'Branch Workspace Created',
-      message: `Branch ${nameEn} (${code.toUpperCase()}) created with full independent job cards & technician pool.`,
+    addBranch({
+      nameEn: nameEn.trim(),
+      nameAr: nameAr.trim() || nameEn.trim(),
+      code: code.trim().toUpperCase(),
+      addressEn: addressEn.trim(),
+      addressAr: addressAr.trim() || addressEn.trim(),
+      phone: phone.trim(),
+      email: email.trim() || `${code.toLowerCase()}@carcarepro.qa`,
+      commercialRegistration: cr.trim() || '148920/1',
+      taxRegistration: '100492817200003',
+      managerName: manager.trim() || 'Branch Supervisor',
+      isActive: true,
     });
 
     setIsAddModalOpen(false);

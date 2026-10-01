@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { JobCard } from '../types';
-import { formatQatarDate, formatQAR, generateWhatsAppLink } from '../utils/i18n';
+import { formatQatarDate, formatQAR, generateWhatsAppLink, openExternalLink } from '../utils/i18n';
 import { BeforeAfterSlider } from '../components/common/BeforeAfterSlider';
 import { CarBlueprintDiagram } from '../components/vehicle/CarBlueprintDiagram';
 import { JobCardPrintView } from '../components/jobs/JobCardPrintView';
@@ -53,7 +53,7 @@ export const CustomerPortal: React.FC = () => {
     if (!branch) return;
     const phone = branch.phone.replace(/[^0-9]/g, '');
     const msg = `Hello ${branch.nameEn}, I am inquiring regarding my vehicle ${activeJob?.make} ${activeJob?.model} (Plate: ${activeJob?.plateNumber}, Job: ${activeJob?.jobNo}).`;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    openExternalLink(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`);
   };
 
   // Status step progression helper

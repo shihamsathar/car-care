@@ -23,7 +23,7 @@ export const ReportsView: React.FC = () => {
   // Calculate metrics
   const totalRevenue = filteredJobs.reduce((acc, j) => acc + (j.totalEstimate || 0), 0);
   const totalCollected = filteredJobs.reduce(
-    (acc, j) => acc + j.payments.reduce((pAcc, p) => pAcc + p.amount, 0),
+    (acc, j) => acc + (j.payments || []).reduce((pAcc, p) => pAcc + (p.amount || 0), 0),
     0
   );
   const totalOutstanding = filteredJobs.reduce((acc, j) => acc + (j.balanceDue || 0), 0);

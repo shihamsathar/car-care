@@ -209,13 +209,12 @@ export const TechnicianDashboard: React.FC = () => {
   // Timer interval for running job
   useEffect(() => {
     let interval: any = null;
-    if (selectedJob?.isTimerRunning) {
+    if (selectedJob?.isTimerRunning && selectedJob?.id) {
+      const activeId = selectedJob.id;
       interval = setInterval(() => {
-        if (selectedJob) {
-          updateJob(selectedJob.id, {
-            timerElapsedSeconds: (selectedJob.timerElapsedSeconds || 0) + 1,
-          });
-        }
+        updateJob(activeId, (prev) => ({
+          timerElapsedSeconds: (prev.timerElapsedSeconds || 0) + 1,
+        }));
       }, 1000);
     }
     return () => clearInterval(interval);

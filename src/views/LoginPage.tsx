@@ -46,6 +46,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setLanguage,
     dir,
     addToast,
+    updateUserCredentials,
   } = useApp();
 
   // Remember last used tab
@@ -229,6 +230,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       password: newPassword,
       mustChangePassword: false,
     };
+
+    updateUserCredentials(pendingChangePasswordUser.id, {
+      password: newPassword,
+      mustChangePassword: false,
+    });
 
     AuthService.saveSession(updated, keepMeSignedIn);
     addToast({

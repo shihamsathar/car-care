@@ -709,10 +709,17 @@ export const TechniciansView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (confirm(`Are you sure you want to delete technician account "${tech.name}"?`)) {
+                        const confirmed = typeof window !== 'undefined' && window.confirm
+                          ? window.confirm(`Are you sure you want to delete technician account "${tech.name}"?`)
+                          : true;
+                        if (confirmed) {
                           const res = deleteUser(tech.id);
                           if (!res.success) {
-                            alert(res.error);
+                            addToast({
+                              type: 'error',
+                              title: 'Cannot Delete Technician',
+                              message: res.error || 'Failed to remove technician account.',
+                            });
                           }
                         }
                       }}

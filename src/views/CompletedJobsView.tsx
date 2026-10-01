@@ -42,10 +42,10 @@ export const CompletedJobsView: React.FC = () => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       return (
-        j.plateNumber.toLowerCase().includes(term) ||
-        j.customerName.toLowerCase().includes(term) ||
-        j.customerQID.includes(term) ||
-        j.jobNo.toLowerCase().includes(term)
+        (j.plateNumber && j.plateNumber.toLowerCase().includes(term)) ||
+        (j.customerName && j.customerName.toLowerCase().includes(term)) ||
+        (j.customerQID && j.customerQID.includes(term)) ||
+        (j.jobNo && j.jobNo.toLowerCase().includes(term))
       );
     }
     return true;

@@ -53,11 +53,11 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
     }
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      const matchPlate = job.plateNumber.toLowerCase().includes(term);
-      const matchCustomer = job.customerName.toLowerCase().includes(term);
-      const matchQID = job.customerQID.includes(term);
-      const matchJobNo = job.jobNo.toLowerCase().includes(term);
-      const matchMake = job.make.toLowerCase().includes(term);
+      const matchPlate = job.plateNumber?.toLowerCase().includes(term) || false;
+      const matchCustomer = job.customerName?.toLowerCase().includes(term) || false;
+      const matchQID = job.customerQID?.includes(term) || false;
+      const matchJobNo = job.jobNo?.toLowerCase().includes(term) || false;
+      const matchMake = job.make?.toLowerCase().includes(term) || false;
       return matchPlate || matchCustomer || matchQID || matchJobNo || matchMake;
     }
     return true;
@@ -72,7 +72,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
   const sentCount = filteredJobs.filter((j) => j.status === 'Report Sent').length;
   const totalRevenue = filteredJobs.reduce((acc, j) => acc + (j.totalEstimate || 0), 0);
   const totalCollected = filteredJobs.reduce(
-    (acc, j) => acc + j.payments.reduce((pAcc, p) => pAcc + p.amount, 0),
+    (acc, j) => acc + (j.payments || []).reduce((pAcc, p) => pAcc + (p.amount || 0), 0),
     0
   );
 

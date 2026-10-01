@@ -44,9 +44,9 @@ export const MasterDataView: React.FC = () => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       return (
-        item.labelEn.toLowerCase().includes(term) ||
+        (item.labelEn && item.labelEn.toLowerCase().includes(term)) ||
         (item.labelAr && item.labelAr.toLowerCase().includes(term)) ||
-        item.code.toLowerCase().includes(term)
+        (item.code && item.code.toLowerCase().includes(term))
       );
     }
     return true;
