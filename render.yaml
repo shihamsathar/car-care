@@ -1,0 +1,19 @@
+# Render.com Blueprint Specification
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: carcare-pro-qatar
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PORT
+        value: 10000
