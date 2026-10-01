@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isSuperAdmin() {
+      return isAuthenticated() && getUserData().role == 'SUPER_ADMIN';
+    }
+    
+    function isBranchAdmin(branchId) {
+      return isAuthenticated() && 
+        (isSuperAdmin() || (getUserData().role == 'BRANCH_ADMIN' && getUserData().branchId == branchId));
+    }
+    
+    function isTechnician() {
+      return isAuthenticated() && getUserData().role == 'TECHNICIAN';
+    }
+    
+    function isCustomer() {
+      return isAuthenticated() && getUserData().role == 'CUSTOMER';
+    }
+    
+    function isCustomerOwner(customerQid) {
+      return isCustomer() && getUserData().qid == customerQid;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // Branches collection
+    match /branches/{branchId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // Customers collection
+    match /customers/{customerId} {
+      allow read: if isAuthenticated() && 
+        (isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN' || isCustomerOwner(resource.data.qid));
+      allow write: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN';
+    }
+
+    // Lookups & Master Data
+    match /lookups/{lookupType}/values/{valueId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN';
+    }
+
+    // Job Cards & subcollections
+    match /jobs/{jobId} {
+      // Super Admin and Branch Admin full access
+      allow read: if isSuperAdmin() || 
+        (getUserData().role == 'BRANCH_ADMIN' && resource.data.branchId == getUserData().branchId) ||
+        (isTechnician() && (resource.data.assignedTechnicianId == request.auth.uid || resource.data.assignedTechnicianId == null)) ||
+        (isCustomerOwner(resource.data.customerQID) && resource.data.reportStatus == 'sent');
+        
+      allow create: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN';
+      
+      allow update: if isSuperAdmin() || 
+        (getUserData().role == 'BRANCH_ADMIN' && resource.data.branchId == getUserData().branchId) ||
+        (isTechnician() && resource.data.assignedTechnicianId == request.auth.uid);
+        
+      allow delete: if isSuperAdmin();
+
+      // Timeline events
+      match /timeline/{eventId} {
+        allow read: if isAuthenticated();
+        allow create: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN' || isTechnician();
+      }
+
+      // Photos
+      match /photos/{photoId} {
+        allow read: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN' || isTechnician() ||
+          (isCustomer() && resource.data.isCustomerVisible == true);
+        allow write: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN' || isTechnician();
+      }
+
+      // Damage Pins
+      match /damagePins/{pinId} {
+        allow read: if isAuthenticated();
+        allow write: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN' || isTechnician();
+      }
+
+      // Technician Notes
+      match /technicianNotes/{noteId} {
+        allow read: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN' || isTechnician();
+        allow write: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN' || isTechnician();
+      }
+
+      // Payments
+      match /payments/{paymentId} {
+        allow read: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN' || 
+          isCustomerOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.customerQID);
+        allow write: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN';
+      }
+    }
+
+    // Settings
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // Audit logs
+    match /auditLogs/{logId} {
+      allow read: if isSuperAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Append-only immutable log
+    }
+
+    // WhatsApp messages log
+    match /whatsappMessages/{msgId} {
+      allow read: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN';
+      allow create: if isSuperAdmin() || getUserData().role == 'BRANCH_ADMIN';
+    }
+  }
+}

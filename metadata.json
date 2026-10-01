@@ -1,0 +1,6 @@
+{
+  "name": "CarCare Pro - Qatar Multi-Branch Car Care Management",
+  "description": "Comprehensive multi-branch car care and auto repair job card management system tailored for Qatar workshops with bilingual Arabic/English, QID customer records, interactive damage inspection blueprints, technician workflows with before/after photos, WhatsApp delivery, and customer portal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

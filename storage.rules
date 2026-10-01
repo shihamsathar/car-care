@@ -1,0 +1,34 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper to check user auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Only image MIME types and under 12MB
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*') &&
+             request.resource.size < 12 * 1024 * 1024;
+    }
+
+    // Branch job photos path: /branches/{branchId}/jobs/{jobId}/photos/{photoName}
+    match /branches/{branchId}/jobs/{jobId}/photos/{photoName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImage();
+    }
+
+    // PDF documents (job cards, completion reports, invoices)
+    match /branches/{branchId}/jobs/{jobId}/documents/{docName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.resource.contentType == 'application/pdf';
+    }
+
+    // Branch branding logos
+    match /branches/{branchId}/logo/{logoName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isValidImage();
+    }
+  }
+}
