@@ -92,7 +92,8 @@ interface AppContextType {
   
   // Quick Switcher / Reset
   loadDemoData: () => void;
-  clearAllErrorsAndData: () => void;
+  resetAllData: () => void;
+  clearAllErrorsAndData?: () => void;
   availableUsers: User[];
   users: User[];
 
@@ -192,7 +193,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [users]);
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const session = AuthService.getCurrentSession();
-    return session ? session.user : null;
+    return session ? session.user : INITIAL_USERS[0];
   });
   const [originalAdminUser, setOriginalAdminUser] = useState<User | null>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<string>('all');
@@ -769,7 +770,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const clearAllErrorsAndData = () => {
+  const resetAllData = () => {
     try {
       localStorage.clear();
       sessionStorage.clear();
@@ -788,10 +789,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToasts([]);
     addToast({
       type: 'success',
-      title: 'All Errors & Data Cleared',
-      message: 'Storage cleared and application reset to a clean, error-free state.',
+      title: 'Workshop Data Reset',
+      message: 'Storage cleared and application reset to pristine Qatar workshop demo state.',
     });
   };
+
+  const clearAllErrorsAndData = resetAllData;
 
   const openQuickLookup = (type: string, parentId?: string) => {
     setActiveQuickLookupType(type);
@@ -1057,6 +1060,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addToast,
         removeToast,
         loadDemoData,
+        resetAllData,
         clearAllErrorsAndData,
         availableUsers: users,
         activeQuickLookupType,

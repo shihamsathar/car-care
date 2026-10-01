@@ -16,7 +16,7 @@ import { useApp } from '../context/AppContext';
 import { INITIAL_USERS } from '../data/seedData';
 
 export const SettingsView: React.FC = () => {
-  const { settings, loadDemoData, clearAllErrorsAndData, setCurrentUser, currentUser, addToast } = useApp();
+  const { settings, loadDemoData, resetAllData, setCurrentUser, currentUser, addToast } = useApp();
 
   const [companyNameEn, setCompanyNameEn] = useState(settings.companyNameEn);
   const [companyNameAr, setCompanyNameAr] = useState(settings.companyNameAr);
@@ -59,12 +59,12 @@ export const SettingsView: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={clearAllErrorsAndData}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl shadow-xs transition-all cursor-pointer"
-            title="Clear all local data and reset to fresh error-free state"
+            onClick={resetAllData}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl shadow-xs transition-all cursor-pointer"
+            title="Reset workshop storage and state"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>Clear All Errors & Cache</span>
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Storage & Data</span>
           </button>
 
           <button
