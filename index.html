@@ -13,6 +13,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script>
+      // Gracefully handle preview iframe environment without raising unhandled WebSocket rejections
+      window.addEventListener('unhandledrejection', function (e) {
+        var reason = e && (e.reason ? (e.reason.message || String(e.reason)) : '');
+        if (typeof reason === 'string' && (reason.indexOf('WebSocket') !== -1 || reason.indexOf('vite') !== -1)) {
+          e.preventDefault();
+        }
+      });
+      window.addEventListener('error', function (e) {
+        var msg = e && (e.message || '');
+        if (typeof msg === 'string' && (msg.indexOf('WebSocket') !== -1 || msg.indexOf('[vite]') !== -1)) {
+          e.preventDefault();
+        }
+      });
+    </script>
   </head>
   <body class="bg-[#F7F9FC] text-slate-800 antialiased selection:bg-[#0E9AA7] selection:text-white">
     <div id="root"></div>
